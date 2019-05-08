@@ -2,7 +2,7 @@
 Esta práctica plantea el desarrollo de un escenario experimental que implemente un algoritmo de exclusión mutua distribuida. En concreto se plantea la implementación de un algoritmo basado en marcas de tiempo.
 
 # Objetivo de la práctica
-La práctica consiste en el desarrollo de un prototipo que implemente la lógica de control para la gestión de relojes lógicos vectoriales as´ı como el protocolo de acceso a una región con exclusión mutua. Para ello se deberá desarrollar un programa que:
+La práctica consiste en el desarrollo de un prototipo que implemente la lógica de control para la gestión de relojes lógicos vectoriales así como el protocolo de acceso a una región con exclusión mutua. Para ello se deberá desarrollar un programa que:
 - Mediante la entrada estándar (_stdin_) reciba la secuencia de acciones a realizar.
 - Utilice el protocolo UDP y la librería de sockets para comunicarse con otros procesos
 análogos.

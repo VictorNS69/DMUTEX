@@ -1,5 +1,7 @@
 /* Definition of the objects
 */
+#ifndef DATA_H
+#define DATA_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,3 +50,5 @@ typedef struct mutex{
   int n_waiting;
   char (*waiting)[80];
 }MUTEX;
+
+#endif

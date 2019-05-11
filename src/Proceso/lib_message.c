@@ -86,7 +86,7 @@ int process_name(char *name, const int port, PEER *peers, int n_peers){
 /** Sends a message
  *  Retrieves: 0 if success, -1 if failure
  */
-int send_message(SOCKET *info, const char *to, int *lclk, int myIndex, PEER *peers, int n_peers){
+int send_message(SOCKET *s, const char *to, int *lclk, int myIndex, PEER *peers, int n_peers){
   lclk[myIndex]++;
   printf("%s: TICK\n", peers[myIndex].id);
   MESSAGE msg;
@@ -110,7 +110,7 @@ int send_message(SOCKET *info, const char *to, int *lclk, int myIndex, PEER *pee
       return -1;
     }
   int tam_d=sizeof(SOCKADDR_IN);
-  if((sendto(info->sckt, buf, msg_sz,0, (struct sockaddr*)&receiver,tam_d))==-1){
+  if((sendto(s->sckt, buf, msg_sz,0, (struct sockaddr*)&receiver,tam_d))==-1){
       //fprintf(stderr, "Error al enviar mensaje(MSG) a %s\n", to);
       return -1;
     }
@@ -122,13 +122,13 @@ int send_message(SOCKET *info, const char *to, int *lclk, int myIndex, PEER *pee
  *  Retrieves: the message if succes,
  *  NULL message if failure
  */
-MESSAGE *receive_message(const SOCKET *info, char *pname, PEER *peers, int n_peers){
+MESSAGE *receive_message(const SOCKET *s, char *pname, PEER *peers, int n_peers){
   SOCKADDR_IN rec;
   unsigned char buff[256] = {0};
   MESSAGE *msg;
   int tam = sizeof(SOCKADDR_IN);
   int msg_sz;
-  if((msg_sz=recvfrom(info->sckt, buff, 256, 0, (SOCKADDR*)&rec, (socklen_t*)&tam))==-1){
+  if((msg_sz=recvfrom(s->sckt, buff, 256, 0, (SOCKADDR*)&rec, (socklen_t*)&tam))==-1){
       //perror("Error");
       return NULL;
     }

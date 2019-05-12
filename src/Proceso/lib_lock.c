@@ -105,7 +105,7 @@ int unlock(const SOCKET *s, const char *idLock, PEER *peers, int n_peers, MUTEX 
         printf("%s: SEND(OK,%s)\n",peers[myIndex].id, locks[lockIndex].waiting[i]);	  
 	  }
     }
-  //remove_lock(idLock);
+  remove_lock(idLock, locks, n_locks);
   return 0;
 }
 

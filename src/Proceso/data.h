@@ -1,7 +1,6 @@
 /* Definition of the objects
 */
 #ifndef DATA_H
-#define DATA_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +19,6 @@
 #define LOCK 1
 #define OK 2
 
-#define MAX_SIZE 256
 
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;

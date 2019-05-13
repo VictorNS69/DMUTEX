@@ -56,14 +56,15 @@ typedef struct mutex
 }MUTEX;
 
 /* Abre socket y guarda información del socket en el parámetro de entrada */
-int open_udp(INFO_SCKT *info);
+//int open_udp(INFO_SCKT *info);
 /* Almacena el proceso y su puerto en nuestra lista */
-int store_peer_sckt(const char *proc, const int port);
+//int store_peer_sckt(const char *proc, const int port);
 /* Crea el reloj lógico */
-int init_lclk(void);
+//int init_lclk(void);
 /* Imprime el reloj lógico */
-void print_lclk(void);
+//void print_lclk(void);
 /* Combina los relojes lógicos, el local y el del mensaje */
+
 void update_lclk(const int *r_lclk);
 /* Serializa el mensaje UDP */
 int serialize(const UDP_MSG *msg, unsigned char **buf);
@@ -76,17 +77,23 @@ int send_message(INFO_SCKT *info, const char *to);
 /* Recibe un mensaje UDP */
 UDP_MSG *receive_message(const INFO_SCKT *info, char *pname);
 /* Obtiene el puerto de un id dado */
-int getPort(const char *id);
+
+
+//int getPort(const char *id);
 /* Obtiene el índice de proceso de un id dado */
 int getPeerIndex(const char *idPeer);
 /* Obtiene el índice de cerrojo de un id de cerrojo dado */
 int getLockIndex(const char *idLock);
+
 /* Devuelve 0 si el reloj de la petición es más antiguo que el actual */
-int prioridad(const int *reqLClk, const int *msgLClk, const char *id);
+//int prioridad(const int *reqLClk, const int *msgLClk, const char *id);
 /* Añade un cerrojo a la lista de cerrojos */
-int add_lock(const INFO_SCKT *info, const char *id);
+//int add_lock(const INFO_SCKT *info, const char *id);
 /* Elimina un cerrojo de la lista de cerrojos */
-int remove_lock(const char *id);
+
+// TODO
+//int remove_lock(const char *id);
+
 /* Añade un proceso a la lista de espera de un cerrojo */
 int addToQueue(const char *idLock, const char* idPeer);
 /* Envía las peticiones de OK a la cola del cerrojo y elimina el cerrojo */

@@ -452,7 +452,6 @@ int main(int argc, char *argv[]){
     fprintf(stderr, "Uso: proceso <ID>\n");
     return 1;
   }
-  /* Establece el modo buffer de entrada/salida a línea */
   setvbuf(stdout, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   setvbuf(stdin, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   SCKT skt;

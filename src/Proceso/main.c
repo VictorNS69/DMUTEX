@@ -1,4 +1,12 @@
-#include "main.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <strings.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <stdbool.h>
 
 ////////////////////////// Constants
 #define HOST "localhost"
@@ -6,8 +14,38 @@
 #define LOCK 1
 #define OK 2
 
-////////////////////////// GLOBAL VARIALBES
+////////////////////////// TYPEDEF'S
+typedef struct sockaddr_in SOCKADDR_IN;
+typedef struct sockaddr SOCKADDR;
 
+typedef struct info_sckt{
+  int sckt;
+  SOCKADDR_IN sckaddr;
+}INFO_SCKT;
+
+typedef struct peer_sckt{
+  char id[80];
+  int port;
+}PEER;
+
+typedef struct udp_msg{
+  int op;
+  char idLock[80];
+  int *lclk;
+}UDP_MSG;
+
+typedef struct mutex{
+  char id[80];
+  bool req; 
+  int *req_lclk;
+  bool inside;
+  int ok;
+  int n_waiting;
+  char (*waiting)[80];
+}MUTEX;
+
+
+////////////////////////// GLOBAL VARIALBES
 int udp_port;
 PEER *peers;
 int n_peers;

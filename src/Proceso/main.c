@@ -1,3 +1,7 @@
+/* DMUTEX (2019) Sistemas Operativos Distribuidos
+ * Author: Víctor Nieves Sánchez
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

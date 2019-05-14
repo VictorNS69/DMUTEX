@@ -46,15 +46,19 @@ typedef struct {
 
 ////////////////////////// GLOBAL VARIALBES
 int PORT;
-PEER *PEERS;
-int NPEERS;
+int INDEX;
 int *CLK;
 int *PASTCLK;
-int INDEX;
 MUTEX *LOCKS;
 int NLOCKS;
+PEER *PEERS;
+int NPEERS;
 
 ////////////////////////// AUXILIAR FUNCTIONS
+/** Opens a socket and store its info
+ *  in socket ("s") object 
+ *  Returns: 0 if success, -1 if failure
+ */
 int open_port(SCKT *skt){
   if ((skt->sckt = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
     return -1;
@@ -75,6 +79,9 @@ int open_port(SCKT *skt){
   return 0;
 }
 
+/** Stores the process and the port in a object
+ *  Retrieves: 0 if success, -1 if failure
+ */
 int store_peer(const char *proc, const int port){
   strcpy(PEERS[NPEERS].id, proc);
   PEERS[NPEERS++].port = port;
@@ -84,6 +91,9 @@ int store_peer(const char *proc, const int port){
   return 0;
 }
 
+/** Initializes the clock
+ *  Retrieves: 0 if succes, -1 if failure
+ */
 int init_clk(void){
   if ((CLK = calloc(NPEERS, sizeof(int))) == NULL){
     return -1;
@@ -94,6 +104,8 @@ int init_clk(void){
   return 0;
 }
 
+/** Prints the clock
+ */
 void print_clk(void){
   int i;
   printf("%s: LC[", PEERS[INDEX].id);
@@ -105,12 +117,18 @@ void print_clk(void){
   }
 }
 
+/** Updates the local and the message clock
+ */
 void update_clk(const int *r_CLK){
   int i;
   for (i = 0; i < NPEERS; i++)
     CLK[i] = CLK[i] > r_CLK[i] ? CLK[i] : r_CLK[i];
 }
 
+/** Serializes a UDP message
+ *  Retrieves: the size of the message if success,
+ *  -1 if failure
+ */
 int serialize(const MESSAGE *msg, unsigned char **buf){
   int msg_sz = sizeof(uint32_t) + 100 + NPEERS * sizeof(uint32_t);
   if ((*buf = calloc(1, msg_sz)) == NULL){
@@ -132,8 +150,12 @@ int serialize(const MESSAGE *msg, unsigned char **buf){
   return msg_sz;
 }
 
+/** Deserializes a UDP message
+ *  Retrieves: the message if succes,
+ *  NULL message if failure
+ */
 MESSAGE *deserialize(const unsigned char *buf, const size_t bufSz){
-  static const size_t MIN_BUF_SZ = 88;
+  static const size_t MIN_BUF_SZ = 108;
   MESSAGE *msg;
   if (buf && bufSz < MIN_BUF_SZ){
     return NULL;
@@ -162,6 +184,9 @@ MESSAGE *deserialize(const unsigned char *buf, const size_t bufSz){
   return msg;
 }
 
+/** Retrieves the name of a procees given a port
+ *  Retrieves: 0 if success, -1 if failure
+ */
 int process_name(char *name, const int port){
   int i;
   bool found = false;
@@ -175,14 +200,17 @@ int process_name(char *name, const int port){
   return -1;
 }
 
+/** Sends a message
+ *  Retrieves: 0 if success, -1 if failure
+ */
 int send_message(SCKT *skt, const char *to){
   CLK[INDEX]++;
   printf("%s: TICK\n", PEERS[INDEX].id);
   MESSAGE msg;
   bzero((char *)&msg, sizeof(MESSAGE));
   msg.op = MSG;
-  int port;
-  if ((port = get_port(to)) == -1) {
+  int port = get_port(to);
+  if (port == -1) {
     return -1;
   }
   SOCKADDR_IN receiver;
@@ -204,6 +232,10 @@ int send_message(SCKT *skt, const char *to){
   return 0;
 }
 
+/** Recives an UDP message
+ *  Retrieves: the message if succes,
+ *  NULL message if failure
+ */
 MESSAGE *receive_message(const SCKT *skt, char *pname){
   SOCKADDR_IN rec;
   unsigned char buff[256] = {0};
@@ -222,6 +254,9 @@ MESSAGE *receive_message(const SCKT *skt, char *pname){
   return msg;
 }
 
+/** Retrieves the port of a given id,
+ *  -1 if failure
+ */
 int get_port(const char *id){
   int i;
   bool found = false;
@@ -234,6 +269,9 @@ int get_port(const char *id){
   return -1;
 }
 
+/** Retrieves the index of a lock,
+ *  -1 if failure
+ */
 int get_lock_index(const char *idLock){
   int i;
   bool found = false;
@@ -245,6 +283,9 @@ int get_lock_index(const char *idLock){
   return -1;
 }
 
+/** Retrieves the index of a process of a given id,
+ *  -1 if failure
+ */
 int get_peer_index(const char *idPeer){
   int i;
   bool found = false;
@@ -256,6 +297,9 @@ int get_peer_index(const char *idPeer){
   return -1;
 }
 
+/** Adds a process to a lock's queue
+ *  Retrieves: 0 if succes, -1 if failure 
+ */
 int add_to_queue(const char *idLock, const char *idPeer){
   int lockIndex;
   if ((lockIndex = get_lock_index(idLock)) == -1){
@@ -272,6 +316,9 @@ int add_to_queue(const char *idLock, const char *idPeer){
   return 0;
 }
 
+/** Retrieves 0 if the clock is olther than the actual clock,
+ *  1 if it is younghter or -1 if failure
+ */
 int priority(const int *reqLClk, const int *msgLclk, const char *id){
   int i;
   int less = 0;
@@ -305,6 +352,9 @@ int priority(const int *reqLClk, const int *msgLclk, const char *id){
   }
 }
 
+/** Removes a lock
+ *  Retrieves: 0 if succes, -1 if failure
+ */
 int remove_lock(const char *id){
   int lockIndex;
   if ((lockIndex = get_lock_index(id)) == -1){
@@ -326,6 +376,9 @@ int remove_lock(const char *id){
   return 0;
 }
 
+/** Adds a new lock
+ * Retrieves: 0 if success, -1 if failure
+ */
 int add_lock(const SCKT *skt, const char *id){
   if ((get_lock_index(id) != -1)){
     return -1;
@@ -375,6 +428,9 @@ int add_lock(const SCKT *skt, const char *id){
   return 0;
 }
 
+/** Unlocks a lock
+ * Retrieves: 0 if success, -1 if failure
+ */
 int unlock_lock(const SCKT *skt, const char *idLock){
   int lockIndex;
   if ((lockIndex = get_lock_index(idLock)) == -1){
@@ -414,6 +470,9 @@ int unlock_lock(const SCKT *skt, const char *idLock){
   return 0;
 }
 
+/** Sends the request
+ *  Retrieves: 0 if success, -1 if failure
+ */
 int send_ok_req(const SCKT *skt, const char *idPeer, const char *idLock){
   CLK[INDEX]++;
   printf("%s: TICK\n", PEERS[INDEX].id);

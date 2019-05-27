@@ -84,19 +84,6 @@ int init_clk(void){
   return 0;
 }
 
-/** Prints the clock
- */
-void print_clk(void){
-  int i;
-  printf("%s: LC[", PEERS[INDEX].id);
-  for (i = 0; i < NPEERS; i++){
-    if (i == NPEERS - 1)
-      printf("%i]\n", CLK[i]);
-    else
-      printf("%i,", CLK[i]);
-  }
-}
-
 /** Updates the local and the message clock
  */
 void update_clk(const int *r_CLK){
@@ -164,21 +151,6 @@ MESSAGE *deserialize(const unsigned char *buf, const size_t bufSz){
   return msg;
 }
 
-/** Retrieves the name of a procees given a port
- *  Retrieves: 0 if success, -1 if failure
- */
-int process_name(char *name, const int port){
-  int i;
-  bool found = false;
-  for (i = 0; i < NPEERS && !found; i++){
-    if (PEERS[i].port == port){
-      found = true;
-      strcpy(name, PEERS[i].id);
-      return 0;
-    }
-  }
-  return -1;
-}
 
 /** Sends a message
  *  Retrieves: 0 if success, -1 if failure
@@ -199,7 +171,6 @@ int send_message(SCKT *skt, const char *to){
       port = PEERS[it].port;
     }
   }
-  //int port = get_port(to);
   if (port == -1) {
     return -1;
   }
@@ -238,7 +209,18 @@ MESSAGE *receive_message(const SCKT *skt, char *pname){
   if ((msg = deserialize(buff, msg_sz)) == NULL){
     return NULL;
   }
-  if ((process_name(pname, ntohs(rec.sin_port))) == -1){
+  int i;
+  int pname_s = -1;
+  bool found = false;
+  for (i = 0; i < NPEERS && !found; i++){
+    if (PEERS[i].port == ntohs(rec.sin_port)){
+      found = true;
+      strcpy(pname, PEERS[i].id);
+      pname_s = 0;
+    }
+  }
+  //if ((process_name(pname, ntohs(rec.sin_port))) == -1){
+  if (pname_s == -1){
     return NULL;
   }
   return msg;
@@ -327,29 +309,7 @@ int priority(const int *reqLClk, const int *msgLclk, const char *id){
   }
 }
 
-/** Removes a lock
- *  Retrieves: 0 if succes, -1 if failure
- */
-int remove_lock(const char *id){
-  int lockIndex;
-  if ((lockIndex = get_lock_index(id)) == -1){
-    return -1;
-  }
-  MUTEX *temp = malloc((NLOCKS) * sizeof(MUTEX));
-  if (!lockIndex){
-    memmove(temp, LOCKS + 1, (NLOCKS - 1) * sizeof(MUTEX));
-  }
-  else{
-    memmove(temp, LOCKS, (lockIndex) * sizeof(MUTEX));
-    memmove(temp + lockIndex, LOCKS + lockIndex + 1, (NLOCKS - lockIndex - 1) * sizeof(MUTEX));
-  }
-  free(LOCKS[lockIndex].req_CLK);
-  free(LOCKS[lockIndex].waiting);
-  free(LOCKS);
-  NLOCKS--;
-  LOCKS = temp;
-  return 0;
-}
+
 
 /** Adds a new lock
  * Retrieves: 0 if success, -1 if failure
@@ -441,7 +401,24 @@ int unlock_lock(const SCKT *skt, const char *idLock){
       printf("%s: SEND(OK,%s)\n", PEERS[INDEX].id, LOCKS[lockIndex].waiting[i]);
     }
   }
-  remove_lock(idLock);
+  //remove_lock(idLock);
+  int lockIndex2;
+  if ((lockIndex2 = get_lock_index(idLock)) == -1){
+    return -1;
+  }
+  MUTEX *temp = malloc((NLOCKS) * sizeof(MUTEX));
+  if (!lockIndex2){
+    memmove(temp, LOCKS + 1, (NLOCKS - 1) * sizeof(MUTEX));
+  }
+  else{
+    memmove(temp, LOCKS, (lockIndex2) * sizeof(MUTEX));
+    memmove(temp + lockIndex2, LOCKS + lockIndex2 + 1, (NLOCKS - lockIndex2 - 1) * sizeof(MUTEX));
+  }
+  free(LOCKS[lockIndex2].req_CLK);
+  free(LOCKS[lockIndex2].waiting);
+  free(LOCKS);
+  NLOCKS--;
+  LOCKS = temp;
   return 0;
 }
 
@@ -554,7 +531,15 @@ int main(int argc, char *argv[]){
       continue;
     }
     if (!strcmp(line, "GETCLOCK\n")) {
-      print_clk();
+      int i_clk;
+      printf("%s: LC[", PEERS[INDEX].id);
+      for (i_clk = 0; i_clk < NPEERS; i_clk++){
+        if (i_clk == NPEERS - 1)
+          printf("%i]\n", CLK[i_clk]);
+        else
+          printf("%i,", CLK[i_clk]);
+      }
+      //print_clk();
       continue;
     }
     if (!strcmp(line, "RECEIVE\n")){

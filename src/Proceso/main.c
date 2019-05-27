@@ -59,30 +59,6 @@ PEER *PEERS;
 int NPEERS;
 
 ////////////////////////// AUXILIAR FUNCTIONS
-/** Opens a socket and store its info
- *  in socket ("s") object 
- *  Returns: 0 if success, -1 if failure
- */
-int open_port(SCKT *skt){
-  if ((skt->sckt = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1){
-    return -1;
-  }
-  bzero((char *)&(skt->sckaddr), sizeof(SOCKADDR_IN));
-  skt->sckaddr.sin_family = AF_INET;
-  skt->sckaddr.sin_addr.s_addr = INADDR_ANY;
-  skt->sckaddr.sin_port = htons(0);
-  if (bind(skt->sckt, (struct sockaddr *)&(skt->sckaddr), sizeof(SOCKADDR_IN)) == -1){
-    close(skt->sckt);
-    return -1;
-  }
-  int tam_dir = sizeof(SOCKADDR_IN);
-  if (getsockname(skt->sckt, (struct sockaddr *)&(skt->sckaddr), (socklen_t *)&tam_dir) == -1){
-    close(skt->sckt);
-    return -1;
-  }
-  return 0;
-}
-
 /** Stores the process and the port in a object
  *  Retrieves: 0 if success, -1 if failure
  */
@@ -213,7 +189,17 @@ int send_message(SCKT *skt, const char *to){
   MESSAGE msg;
   bzero((char *)&msg, sizeof(MESSAGE));
   msg.op = MSG;
-  int port = get_port(to);
+  ///
+  int port = -1;
+  int it;
+  bool found = false;
+  for (it = 0; it < NPEERS && !found; it++){
+    if (!strcmp(to, PEERS[it].id) && port == -1){
+      found = true;
+      port = PEERS[it].port;
+    }
+  }
+  //int port = get_port(to);
   if (port == -1) {
     return -1;
   }
@@ -256,21 +242,6 @@ MESSAGE *receive_message(const SCKT *skt, char *pname){
     return NULL;
   }
   return msg;
-}
-
-/** Retrieves the port of a given id,
- *  -1 if failure
- */
-int get_port(const char *id){
-  int i;
-  bool found = false;
-  for (i = 0; i < NPEERS && !found; i++){
-    if (!strcmp(id, PEERS[i].id)){
-      found = true;
-      return PEERS[i].port;
-    }
-  }
-  return -1;
 }
 
 /** Retrieves the index of a lock,
@@ -518,7 +489,29 @@ int main(int argc, char *argv[]){
   setvbuf(stdout, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   setvbuf(stdin, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   SCKT skt;
-  if (open_port(&skt) == -1){
+  ///
+  int status_sk = 0;
+  if ((skt.sckt = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1
+      && status_sk == 0){
+    status_sk = -1;
+  }
+  bzero((char *)&(skt.sckaddr), sizeof(SOCKADDR_IN));
+  skt.sckaddr.sin_family = AF_INET;
+  skt.sckaddr.sin_addr.s_addr = INADDR_ANY;
+  skt.sckaddr.sin_port = htons(0);
+  if (bind(skt.sckt, (struct sockaddr *)&(skt.sckaddr), sizeof(SOCKADDR_IN)) == -1
+      && status_sk == 0){
+    close(skt.sckt);
+    status_sk = -1;
+  }
+  int tam_dir = sizeof(SOCKADDR_IN);
+  if (getsockname(skt.sckt, (struct sockaddr *)&(skt.sckaddr), (socklen_t *)&tam_dir) == -1
+      && status_sk == 0){
+    close(skt.sckt);
+    status_sk = -1;
+  }
+
+  if (status_sk == -1){
     return -1;
   }
   PORT = ntohs(skt.sckaddr.sin_port);

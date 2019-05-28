@@ -71,18 +71,6 @@ int store_peer(const char *proc, const int port){
   return 0;
 }
 
-/** Initializes the clock
- *  Retrieves: 0 if succes, -1 if failure
- */
-int init_clk(void){
-  if ((CLK = calloc(NPEERS, sizeof(int))) == NULL){
-    return -1;
-  }
-  if ((PASTCLK = calloc(NPEERS, sizeof(int))) == NULL) {
-    return -1;
-  }
-  return 0;
-}
 
 /** Updates the local and the message clock
  */
@@ -309,8 +297,6 @@ int priority(const int *reqLClk, const int *msgLclk, const char *id){
   }
 }
 
-
-
 /** Adds a new lock
  * Retrieves: 0 if success, -1 if failure
  */
@@ -401,7 +387,6 @@ int unlock_lock(const SCKT *skt, const char *idLock){
       printf("%s: SEND(OK,%s)\n", PEERS[INDEX].id, LOCKS[lockIndex].waiting[i]);
     }
   }
-  //remove_lock(idLock);
   int lockIndex2;
   if ((lockIndex2 = get_lock_index(idLock)) == -1){
     return -1;
@@ -518,7 +503,16 @@ int main(int argc, char *argv[]){
     free(PEERS);
     return -1;
   }
-  if (init_clk() == -1) {
+  ///
+  int clk_st = 0;
+  if ((CLK = calloc(NPEERS, sizeof(int))) == NULL){
+    clk_st = -1;
+  }
+  if ((PASTCLK = calloc(NPEERS, sizeof(int))) == NULL) {
+    clk_st = -1;
+  }
+  //if (init_clk() == -1) {
+  if (clk_st == -1){
     free(PEERS);
     return -1;
   }

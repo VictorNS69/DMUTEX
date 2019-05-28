@@ -59,19 +59,6 @@ PEER *PEERS;
 int NPEERS;
 
 ////////////////////////// AUXILIAR FUNCTIONS
-/** Stores the process and the port in a object
- *  Retrieves: 0 if success, -1 if failure
- */
-int store_peer(const char *proc, const int port){
-  strcpy(PEERS[NPEERS].id, proc);
-  PEERS[NPEERS++].port = port;
-  if ((PEERS = realloc(PEERS, (1 + NPEERS) * sizeof(PEER))) == NULL){
-    return -1;
-  }
-  return 0;
-}
-
-
 /** Updates the local and the message clock
  */
 void update_clk(const int *r_CLK){
@@ -139,7 +126,6 @@ MESSAGE *deserialize(const unsigned char *buf, const size_t bufSz){
   return msg;
 }
 
-
 /** Sends a message
  *  Retrieves: 0 if success, -1 if failure
  */
@@ -149,7 +135,6 @@ int send_message(SCKT *skt, const char *to){
   MESSAGE msg;
   bzero((char *)&msg, sizeof(MESSAGE));
   msg.op = MSG;
-  ///
   int port = -1;
   int it;
   bool found = false;
@@ -207,7 +192,6 @@ MESSAGE *receive_message(const SCKT *skt, char *pname){
       pname_s = 0;
     }
   }
-  //if ((process_name(pname, ntohs(rec.sin_port))) == -1){
   if (pname_s == -1){
     return NULL;
   }
@@ -451,7 +435,6 @@ int main(int argc, char *argv[]){
   setvbuf(stdout, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   setvbuf(stdin, (char *)malloc(sizeof(char) * 100), _IOLBF, 100);
   SCKT skt;
-  ///
   int status_sk = 0;
   if ((skt.sckt = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1
       && status_sk == 0){
@@ -472,7 +455,6 @@ int main(int argc, char *argv[]){
     close(skt.sckt);
     status_sk = -1;
   }
-
   if (status_sk == -1){
     return -1;
   }
@@ -494,7 +476,13 @@ int main(int argc, char *argv[]){
     if (!strcmp(proc, argv[1])){
       INDEX = NPEERS;
     }
-    if (store_peer(proc, port) == -1){
+    int st_store_peer = 0;
+    strcpy(PEERS[NPEERS].id, proc);
+    PEERS[NPEERS++].port = port;
+    if ((PEERS = realloc(PEERS, (1 + NPEERS) * sizeof(PEER))) == NULL){
+      st_store_peer = -1;
+    }
+    if (st_store_peer == -1){
       free(PEERS);
       return -1;
     }
@@ -503,7 +491,6 @@ int main(int argc, char *argv[]){
     free(PEERS);
     return -1;
   }
-  ///
   int clk_st = 0;
   if ((CLK = calloc(NPEERS, sizeof(int))) == NULL){
     clk_st = -1;
@@ -511,7 +498,6 @@ int main(int argc, char *argv[]){
   if ((PASTCLK = calloc(NPEERS, sizeof(int))) == NULL) {
     clk_st = -1;
   }
-  //if (init_clk() == -1) {
   if (clk_st == -1){
     free(PEERS);
     return -1;
@@ -533,7 +519,6 @@ int main(int argc, char *argv[]){
         else
           printf("%i,", CLK[i_clk]);
       }
-      //print_clk();
       continue;
     }
     if (!strcmp(line, "RECEIVE\n")){
